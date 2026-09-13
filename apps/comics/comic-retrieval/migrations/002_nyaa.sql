@@ -1,0 +1,1 @@
+ALTER TABLE catalog ADD COLUMN nyaa_attempted INTEGER NOT NULL DEFAULT 0;

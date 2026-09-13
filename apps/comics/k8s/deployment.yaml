@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: comic-retrieval
+  namespace: comics
+  labels:
+    app: comic-retrieval
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: comic-retrieval
+  strategy:
+    type: Recreate    # only one instance at a time to avoid DB contention
+  template:
+    metadata:
+      labels:
+        app: comic-retrieval
+    spec:
+      containers:
+        - name: comic-retrieval
+          image: 10.0.0.11:30500/comic-retrieval:latest
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: comic-retrieval-config
+            - secretRef:
+                name: manga-creds
+          volumeMounts:
+            - name: nas-comics
+              mountPath: /comics
+            - name: books
+              mountPath: /books
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: nas-comics
+          persistentVolumeClaim:
+            claimName: nas-comics-pvc
+        - name: books
+          persistentVolumeClaim:
+            claimName: books

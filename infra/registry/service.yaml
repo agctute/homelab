@@ -1,0 +1,20 @@
+# NodePort (fixed at 30500) rather than LoadBalancer: kube-proxy routes a
+# NodePort to the backing pod from ANY node's IP regardless of which node it
+# actually landed on, so bravostation's IP (10.0.0.11) works as a stable
+# endpoint for docker/containerd config even though the registry pod itself
+# runs on charliestation or deltastation.
+apiVersion: v1
+kind: Service
+metadata:
+  name: registry
+  namespace: registry
+spec:
+  selector:
+    app: registry
+  type: NodePort
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+      nodePort: 30500
+      protocol: TCP

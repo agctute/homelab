@@ -1,0 +1,15 @@
+# Local-path storage is fine here: the registry is a single replica, and
+# local-path-provisioner pins the pod to whichever node first creates the
+# PV via node affinity, so it stays put across restarts.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: registry-data
+  namespace: registry
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 50Gi

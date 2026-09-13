@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: torrent-allocator-config
+  namespace: torrent-allocator
+data:
+  # qBittorrent runs via docker-compose directly on the NAS (january,
+  # 10.0.0.41) rather than in-cluster — apps/qbittorrent/k8s/ is unused.
+  QBITTORRENT_URL: "http://10.0.0.41:8090"
+  DB_PATH: "/data/state.db"
+  POLL_INTERVAL_SECS: "30"
+  OPENAI_MODEL: "gpt-4o-mini"
+  LOG_LEVEL: "info"
+  # In-pod mount points — see k8s/pvc.yaml (books PVC) and k8s/deployment.yaml.
+  COMICS_PATH: "/books/comics"
+  MANGA_PATH: "/books/manga"
+  NOVELS_PATH: "/books/novels"
+  TEXTBOOKS_PATH: "/books/textbooks"
+  AUDIOBOOKS_PATH: "/books/audiobooks"
+  # Binaries installed in the Dockerfile's runtime stage; already on PATH,
+  # listed here only for clarity/override.
+  ZIP_BIN: "zip"
+  UNRAR_BIN: "unrar"
+  EBOOK_CONVERT_BIN: "ebook-convert"
+  # Optional — Google Books works fine unauthenticated at low volume; set
+  # GOOGLE_BOOKS_API_KEY (in k8s/secret.yaml, not here) only if you hit rate
+  # limits.

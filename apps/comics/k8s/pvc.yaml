@@ -1,0 +1,53 @@
+## Static NFS PersistentVolume for the shared books library — the SAME NFS
+## export torrent-allocator uses (10.0.0.41:/volume1/books), so MangaDex
+## downloads land in the same directory tree that torrent-allocator routes
+## nyaa-fallback and other manga torrents into (see apps/torrent-allocator/
+## k8s/pvc.yaml and docs/architecture.md — torrent-allocator is the source
+## of truth for this NFS layout).
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: comic-retrieval-books
+spec:
+  capacity:
+    storage: 5Ti
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 10.0.0.41
+    path: /volume1/books
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: books
+  namespace: comics
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Ti
+  volumeName: comic-retrieval-books
+  storageClassName: ""
+---
+## Legacy volume: dynamically provisioned off the nas-torrents StorageClass,
+## which (mistakenly) pointed comic-retrieval at the torrents NFS share
+## instead of the books library. Kept mounted (not deleted — its
+## StorageClass reclaimPolicy is Delete, which would destroy the ~49GB
+## already downloaded here) so the app can keep reading/writing its sqlite
+## state DB and the pre-migration library content until that data is moved
+## over to the `books` volume above.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nas-comics-pvc
+  namespace: comics
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nas-torrents
+  resources:
+    requests:
+      storage: 5Ti

@@ -1,0 +1,52 @@
+[package]
+name = "comic-retrieval"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "comic_retrieval"
+path = "src/lib.rs"
+
+[[bin]]
+name = "comic-retrieval"
+path = "src/main.rs"
+
+[[bin]]
+name = "migrate-filenames"
+path = "src/bin/migrate_filenames.rs"
+
+[[bin]]
+name = "fix-scene-names"
+path = "src/bin/fix_scene_names.rs"
+
+[[bin]]
+name = "audit-library"
+path = "src/bin/audit_library.rs"
+
+[[bin]]
+name = "purge-manga"
+path = "src/bin/purge_manga.rs"
+
+[[bin]]
+name = "rename-dual-title"
+path = "src/bin/rename_dual_title.rs"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "stream", "cookies"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sqlx = { version = "0.8", features = ["sqlite", "runtime-tokio", "migrate"] }
+tokio-cron-scheduler = { version = "0.13", features = ["signal"] }
+zip = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+tokio-retry = "0.3"
+tempfile = "3"
+futures = "0.3"
+bytes = "1"
+rss = "2"
+urlencoding = "2"
+regex = "1"

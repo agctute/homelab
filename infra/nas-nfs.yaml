@@ -1,0 +1,21 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nas-comics
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 10.0.0.41
+  share: "/volume1/Shared Comics"
+allowVolumeExpansion: true
+
+---
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nas-torrents
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 10.0.0.41
+  share: "/volume1/torrents"
+allowVolumeExpansion: true

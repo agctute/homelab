@@ -1,0 +1,50 @@
+name: Deploy to Kubernetes
+
+on:
+  workflow_dispatch:
+    inputs:
+      app:
+        description: App to deploy
+        required: true
+        type: choice
+        options:
+          - qbittorrent
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+
+      - name: Deploy qbittorrent
+        if: inputs.app == 'qbittorrent'
+        env:
+          NAS_IP: ${{ secrets.NAS_IP }}
+          WIREGUARD_PRIVATE_KEY: ${{ secrets.WIREGUARD_PRIVATE_KEY }}
+          WIREGUARD_PRESHARED_KEY: ${{ secrets.WIREGUARD_PRESHARED_KEY }}
+        run: |
+          kubectl apply -f apps/qbittorrent/namespace.yaml
+
+          kubectl create secret generic gluetun-vpn \
+            --namespace qbittorrent \
+            --from-literal=WIREGUARD_PRIVATE_KEY="$WIREGUARD_PRIVATE_KEY" \
+            --from-literal=WIREGUARD_PRESHARED_KEY="$WIREGUARD_PRESHARED_KEY" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          sed "s/<NAS_IP>/$NAS_IP/g" apps/qbittorrent/pvc.yaml | kubectl apply -f -
+          kubectl apply -f apps/qbittorrent/deployment.yaml
+          kubectl apply -f apps/qbittorrent/service.yaml
+
+      - name: Verify rollout
+        run: |
+          kubectl rollout status deployment/qbittorrent \
+            --namespace ${{ inputs.app }} \
+            --timeout=120s

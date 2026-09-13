@@ -1,0 +1,80 @@
+## Static NFS PersistentVolumes. Replace <NAS_IP> with your NAS's IP address.
+##
+## Two NFS mounts are needed on top of the small state-db volume:
+##   - books:    read/write access to /volume1/books — where converted
+##               library files land, under comics/manga/novels/textbooks
+##               subdirectories (see k8s/configmap.yaml).
+##   - torrents: read/write access to the SAME NFS export qBittorrent
+##               downloads into (/volume1/torrents), mounted at /torrents —
+##               matching the path qBittorrent itself uses (see
+##               apps/qbittorrent/k8s/deployment.yaml) — so `content_path`
+##               values returned by the qBittorrent API resolve to real
+##               local paths inside this pod without any translation.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: torrent-allocator-books
+spec:
+  capacity:
+    storage: 5Ti
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 10.0.0.41
+    path: /volume1/books
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: books
+  namespace: torrent-allocator
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Ti
+  volumeName: torrent-allocator-books
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: torrent-allocator-torrents
+spec:
+  capacity:
+    storage: 100Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 10.0.0.41
+    path: /volume1/torrents
+  persistentVolumeReclaimPolicy: Retain
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: torrents
+  namespace: torrent-allocator
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 100Gi
+  volumeName: torrent-allocator-torrents
+  storageClassName: ""
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: torrent-allocator-data
+  namespace: torrent-allocator
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nas-torrents
+  resources:
+    requests:
+      storage: 1Gi

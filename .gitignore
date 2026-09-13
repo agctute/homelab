@@ -1,0 +1,8 @@
+# k8s secret manifests contain real credentials in stringData — never commit these.
+**/k8s/secret.yaml
+
+# Rust build output
+**/target/
+
+# local Claude Code permission overrides — machine-specific
+**/.claude/settings.local.json

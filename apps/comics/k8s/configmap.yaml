@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: comic-retrieval-config
+  namespace: comics
+data:
+  NAS_COMICS_PATH: "/books/manga"
+  DB_PATH: "/comics/state.db"
+  CONCURRENT_DOWNLOADS: "3"
+  MAX_API_RPS: "5"
+  LOG_LEVEL: "info"
+  RUN_CATALOG_REFRESH_ON_START: "true"
+  RUN_DAILY_UPDATE_ON_START: "true"
+  NYAA_ENABLED: "true"
+  # Real qBittorrent endpoint (docker-compose on the NAS, not in-cluster) —
+  # matches apps/torrent-allocator/k8s/configmap.yaml, the source of truth
+  # for this value. The previous "qbittorrent:8080" pointed at a Service
+  # that was never actually deployed.
+  QBITTORRENT_URL: "http://10.0.0.41:8090"

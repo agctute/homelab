@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: torrent-allocator
+  namespace: torrent-allocator
+  labels:
+    app: torrent-allocator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: torrent-allocator
+  strategy:
+    type: Recreate # only one instance at a time to avoid DB contention
+  template:
+    metadata:
+      labels:
+        app: torrent-allocator
+    spec:
+      containers:
+        - name: torrent-allocator
+          image: 10.0.0.11:30500/torrent-allocator:latest
+          # Always, not IfNotPresent: this is a mutable :latest tag rebuilt
+          # frequently during development. IfNotPresent silently reuses
+          # whatever image the node already has cached under that tag name
+          # — it has no way to know the registry's content changed — so
+          # `kubectl rollout restart` alone does NOT guarantee a fresh pull.
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: torrent-allocator-config
+            - secretRef:
+                name: torrent-allocator-creds
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: books
+              mountPath: /books
+            - name: torrents
+              mountPath: /torrents
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: torrent-allocator-data
+        - name: books
+          persistentVolumeClaim:
+            claimName: books
+        - name: torrents
+          persistentVolumeClaim:
+            claimName: torrents
